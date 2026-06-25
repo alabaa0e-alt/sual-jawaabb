@@ -1,1 +1,1146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>سؤال جواب - تطبيق تنافسي</title>
+  <meta name="description" content="تطبيق سؤال جواب تنافسي - تصميم عمار العبد الله">
+  <meta name="theme-color" content="#0a0e1a">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap');
 
+:root {
+  --primary: #00d4ff;
+  --secondary: #7b2ff7;
+  --accent: #ff2e63;
+  --gold: #ffd700;
+  --success: #00e676;
+  --danger: #ff1744;
+  --warning: #ff9100;
+  --glass: rgba(255,255,255,0.08);
+  --glass-border: rgba(255,255,255,0.15);
+}
+
+.theme-dark {
+  --bg: #0a0e1a;
+  --bg-secondary: #111827;
+  --bg-card: #1a1f2e;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --border: rgba(255,255,255,0.1);
+  --shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+.theme-white {
+  --bg: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --border: rgba(0,0,0,0.08);
+  --shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.theme-green {
+  --bg: #064e3b;
+  --bg-secondary: #065f46;
+  --bg-card: #047857;
+  --text: #ecfdf5;
+  --text-muted: #a7f3d0;
+  --border: rgba(255,255,255,0.15);
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: 'Tajawal', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  transition: all 0.5s ease;
+  direction: rtl;
+}
+
+#splash-screen {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: var(--bg); z-index: 1000;
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+#splash-screen.hidden {
+  opacity: 0; transform: scale(1.1); pointer-events: none;
+}
+
+.neon-title {
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 900; text-align: center;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 40px rgba(0,212,255,0.3);
+  animation: neonPulse 2s ease-in-out infinite;
+  margin-bottom: 1rem;
+}
+@keyframes neonPulse {
+  0%,100% { filter: brightness(1) drop-shadow(0 0 20px rgba(0,212,255,0.4)); }
+  50% { filter: brightness(1.2) drop-shadow(0 0 40px rgba(123,47,247,0.6)); }
+}
+
+.subtitle { font-size: 1.3rem; color: var(--text-muted); margin-bottom: 0.5rem; text-align: center; }
+.designer-credit { font-size: 1rem; color: var(--primary); margin-bottom: 3rem; text-align: center; opacity: 0.9; }
+
+.fluid-loader {
+  width: 80%; max-width: 500px; height: 24px;
+  background: var(--bg-card); border-radius: 12px;
+  overflow: hidden; position: relative;
+  border: 2px solid var(--border);
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
+}
+.fluid-bar {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #00d4ff, #7b2ff7, #00d4ff);
+  background-size: 200% 100%; border-radius: 10px;
+  transition: width 0.3s ease;
+  animation: fluidMove 2s linear infinite;
+  position: relative; overflow: hidden;
+}
+.fluid-bar::after {
+  content: ''; position: absolute; top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: shimmer 1.5s infinite;
+}
+@keyframes fluidMove { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
+@keyframes shimmer { 0%{left:-100%} 100%{left:100%} }
+
+.percent-text { margin-top: 1rem; font-size: 1.2rem; font-weight: 700; color: var(--primary); }
+.loading-hint { margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-muted); font-style: italic; }
+
+.screen {
+  position: fixed; inset: 0; display: none;
+  flex-direction: column; padding: 1.5rem;
+  overflow-y: auto; background: var(--bg);
+  transition: opacity 0.5s ease; opacity: 0;
+}
+.screen.active { display: flex; opacity: 1; }
+
+.setup-container {
+  max-width: 800px; margin: 0 auto; width: 100%;
+  display: flex; flex-direction: column; gap: 2rem; padding-top: 2rem;
+}
+.setup-title {
+  font-size: 2rem; font-weight: 800; text-align: center;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 1rem;
+}
+
+.teams-row { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+@media(max-width:600px){ .teams-row{grid-template-columns:1fr} }
+
+.team-input-card {
+  background: var(--bg-card); border: 2px solid var(--border);
+  border-radius: 20px; padding: 2rem; text-align: center;
+  transition: all 0.3s ease; box-shadow: var(--shadow);
+}
+.team-input-card:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 20px rgba(0,212,255,0.2);
+}
+.team-icon { font-size: 3rem; margin-bottom: 1rem; }
+.team-label { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 1rem; display: block; }
+
+.team-input {
+  width: 100%; padding: 1rem 1.5rem;
+  border: 2px solid var(--border); border-radius: 12px;
+  background: var(--bg-secondary); color: var(--text);
+  font-family: 'Tajawal', sans-serif; font-size: 1.1rem;
+  text-align: center; transition: all 0.3s ease; outline: none;
+}
+.team-input:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(0,212,255,0.2); }
+.team-input::placeholder { color: var(--text-muted); opacity: 0.6; }
+
+.theme-section {
+  background: var(--bg-card); border: 2px solid var(--border);
+  border-radius: 20px; padding: 2rem; text-align: center; box-shadow: var(--shadow);
+}
+.theme-label { font-size: 1.2rem; font-weight: 700; margin-bottom: 1.5rem; display: block; }
+.theme-options { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; }
+
+.theme-btn {
+  width: 70px; height: 70px; border-radius: 50%;
+  border: 3px solid transparent; cursor: pointer;
+  transition: all 0.3s ease; position: relative;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.theme-btn:hover { transform: scale(1.1); }
+.theme-btn.active {
+  border-color: var(--primary);
+  box-shadow: 0 0 20px rgba(0,212,255,0.4);
+  transform: scale(1.15);
+}
+.theme-btn.white { background: linear-gradient(135deg, #f8fafc, #e2e8f0); }
+.theme-btn.dark { background: linear-gradient(135deg, #1a1f2e, #0f172a); border: 2px solid #334155; }
+.theme-btn.green { background: linear-gradient(135deg, #047857, #065f46); }
+
+.theme-name {
+  position: absolute; bottom: -25px; left: 50%;
+  transform: translateX(-50%); font-size: 0.8rem;
+  white-space: nowrap; color: var(--text-muted);
+}
+
+.start-btn {
+  width: 100%; max-width: 400px; margin: 2rem auto 0;
+  padding: 1.2rem 2rem; font-size: 1.3rem; font-weight: 800;
+  font-family: 'Tajawal', sans-serif; border: none;
+  border-radius: 16px; cursor: pointer; transition: all 0.3s ease;
+  position: relative; overflow: hidden; color: white;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  box-shadow: 0 8px 25px rgba(0,212,255,0.3);
+}
+.start-btn:not(:disabled):hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(0,212,255,0.4);
+}
+.start-btn:disabled {
+  background: #475569; cursor: not-allowed; opacity: 0.5; box-shadow: none;
+}
+.start-btn:not(:disabled)::before {
+  content: ''; position: absolute; top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
+  transform: rotate(45deg); transition: all 0.5s;
+}
+.start-btn:not(:disabled):hover::before { left: 100%; }
+
+#game-screen { padding: 0.5rem; }
+.game-header {
+  display: flex; justify-content: space-between;
+  align-items: center; padding: 0.5rem 1rem; margin-bottom: 0.5rem;
+}
+.help-btn {
+  width: 45px; height: 45px; border-radius: 50%;
+  border: 2px dashed var(--primary); background: var(--glass);
+  color: var(--primary); font-size: 1.3rem; font-weight: 800;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s ease; backdrop-filter: blur(10px);
+}
+.help-btn:hover { background: var(--primary); color: white; transform: rotate(15deg) scale(1.1); }
+
+.game-title {
+  font-size: 1.3rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.scores-board {
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  gap: 1rem; align-items: center;
+  margin-bottom: 1rem; padding: 0 0.5rem;
+}
+.team-score-card {
+  background: var(--bg-card); border: 2px solid var(--border);
+  border-radius: 20px; padding: 1rem; text-align: center;
+  box-shadow: var(--shadow); transition: all 0.3s ease;
+  position: relative; overflow: hidden;
+}
+.team-score-card.active-turn {
+  border-color: var(--gold);
+  box-shadow: 0 0 20px rgba(255,215,0,0.3);
+}
+.team-score-card.active-turn::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  animation: goldFlow 2s linear infinite;
+}
+@keyframes goldFlow { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+
+.team-name-display { font-size: 1rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.5rem; }
+.score-value {
+  font-size: 2.5rem; font-weight: 900; color: var(--primary);
+  line-height: 1; margin-bottom: 0.5rem; transition: all 0.3s ease;
+}
+.score-value.changed { transform: scale(1.2); color: var(--gold); }
+
+.score-controls { display: flex; gap: 0.5rem; justify-content: center; }
+.score-btn {
+  width: 40px; height: 40px; border-radius: 10px;
+  border: 2px solid var(--border); background: var(--bg-secondary);
+  color: var(--text); font-size: 1.2rem; font-weight: 800;
+  cursor: pointer; transition: all 0.2s ease;
+  display: flex; align-items: center; justify-content: center;
+}
+.score-btn:hover { transform: scale(1.1); }
+.score-btn.plus { color: var(--success); border-color: var(--success); }
+.score-btn.plus:hover { background: var(--success); color: white; }
+.score-btn.minus { color: var(--danger); border-color: var(--danger); }
+.score-btn.minus:hover { background: var(--danger); color: white; }
+
+.vs-divider {
+  font-size: 1.5rem; font-weight: 900; color: var(--accent);
+  text-align: center; animation: vsPulse 1.5s ease-in-out infinite;
+}
+@keyframes vsPulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.2);opacity:0.7} }
+
+.question-area {
+  background: var(--bg-card); border: 2px solid var(--border);
+  border-radius: 24px; padding: 1.5rem; margin-bottom: 1rem;
+  box-shadow: var(--shadow); min-height: 200px;
+  display: flex; flex-direction: column; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.question-category-badge {
+  position: absolute; top: 1rem; right: 1rem;
+  padding: 0.3rem 0.8rem; border-radius: 20px;
+  font-size: 0.8rem; font-weight: 700; color: white;
+}
+.question-points-badge {
+  position: absolute; top: 1rem; left: 1rem;
+  padding: 0.3rem 0.8rem; border-radius: 20px;
+  font-size: 0.8rem; font-weight: 700;
+  background: var(--gold); color: #1a1f2e;
+}
+.cat-dini { background: linear-gradient(135deg, #10b981, #059669); }
+.cat-crowi { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.cat-thaqafi { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+.cat-hayati { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+.question-text {
+  font-size: 1.3rem; font-weight: 700; text-align: center;
+  line-height: 1.6; margin-top: 2rem; margin-bottom: 1rem;
+}
+.question-type-badge {
+  display: inline-block; padding: 0.2rem 0.6rem;
+  border-radius: 8px; font-size: 0.75rem; font-weight: 700;
+  margin-left: 0.5rem; background: var(--glass);
+  border: 1px solid var(--glass-border);
+}
+
+.answer-actions {
+  display: flex; gap: 1rem; justify-content: center;
+  flex-wrap: wrap; margin-top: 1rem;
+}
+.action-btn {
+  padding: 0.8rem 2rem; border-radius: 14px; border: 2px solid;
+  font-family: 'Tajawal', sans-serif; font-size: 1rem; font-weight: 700;
+  cursor: pointer; transition: all 0.3s ease;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.action-btn.correct {
+  border-color: var(--success); color: var(--success);
+  background: rgba(0,230,118,0.1);
+}
+.action-btn.correct:hover {
+  background: var(--success); color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,230,118,0.3);
+}
+.action-btn.wrong {
+  border-color: var(--danger); color: var(--danger);
+  background: rgba(255,23,68,0.1);
+}
+.action-btn.wrong:hover {
+  background: var(--danger); color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255,23,68,0.3);
+}
+.action-btn.next {
+  border-color: var(--primary); color: var(--primary);
+  background: rgba(0,212,255,0.1);
+}
+.action-btn.next:hover { background: var(--primary); color: white; }
+
+.cards-section { margin-top: 1rem; }
+.cards-title { font-size: 1rem; font-weight: 700; text-align: center; margin-bottom: 1rem; color: var(--text-muted); }
+.cards-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.team-cards { display: flex; flex-direction: column; gap: 0.8rem; }
+.team-cards-label { font-size: 0.9rem; font-weight: 700; text-align: center; color: var(--text-muted); }
+
+.card-slot {
+  background: var(--bg-card); border: 2px dashed var(--border);
+  border-radius: 16px; padding: 1rem; text-align: center;
+  cursor: pointer; transition: all 0.3s ease; min-height: 80px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  position: relative; perspective: 1000px;
+}
+.card-slot:hover:not(.used) {
+  border-color: var(--primary); transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+.card-slot.used { opacity: 0.4; cursor: not-allowed; border-style: solid; }
+.card-slot .card-back { font-size: 2rem; color: var(--primary); transition: transform 0.6s; }
+.card-slot:hover .card-back { transform: rotateY(180deg); }
+.card-slot .card-name { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-top: 0.3rem; }
+.card-slot.revealed {
+  border-style: solid; border-color: var(--gold);
+  background: linear-gradient(135deg, rgba(255,215,0,0.1), var(--bg-card));
+}
+.card-slot.revealed .card-back { transform: rotateY(0); }
+
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(10px); display: none;
+  align-items: center; justify-content: center;
+  z-index: 2000; padding: 1rem;
+}
+.modal-overlay.active { display: flex; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+.modal-content {
+  background: var(--bg-card); border: 2px solid var(--border);
+  border-radius: 24px; padding: 2rem; max-width: 600px;
+  width: 100%; max-height: 80vh; overflow-y: auto;
+  box-shadow: var(--shadow); animation: slideUp 0.4s ease;
+  position: relative;
+}
+@keyframes slideUp { from{transform:translateY(50px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+.modal-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 1.5rem; text-align: center; color: var(--primary); }
+.modal-close {
+  position: absolute; top: 1rem; left: 1rem;
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 2px solid var(--border); background: var(--bg-secondary);
+  color: var(--text); font-size: 1.2rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s ease;
+}
+.modal-close:hover { background: var(--danger); color: white; border-color: var(--danger); }
+
+.rules-list { list-style: none; display: flex; flex-direction: column; gap: 1rem; }
+.rules-list li {
+  padding: 1rem; background: var(--bg-secondary);
+  border-radius: 12px; border-right: 4px solid var(--primary);
+  font-size: 0.95rem; line-height: 1.6;
+}
+.rules-list li strong { color: var(--primary); }
+
+.toast {
+  position: fixed; bottom: 2rem; left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  padding: 1rem 2rem; border-radius: 16px;
+  font-weight: 700; font-size: 1rem; z-index: 3000;
+  opacity: 0; transition: all 0.4s ease; white-space: nowrap;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.toast.success { background: var(--success); color: white; }
+.toast.error { background: var(--danger); color: white; }
+.toast.info { background: var(--primary); color: white; }
+
+.particles { position: fixed; inset: 0; pointer-events: none; z-index: 500; overflow: hidden; }
+.particle {
+  position: absolute; width: 4px; height: 4px;
+  background: var(--primary); border-radius: 50%; opacity: 0;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%,100%{transform:translateY(100vh) scale(0);opacity:0}
+  10%{opacity:1} 90%{opacity:1}
+  100%{transform:translateY(-10vh) scale(1);opacity:0}
+}
+
+@media(max-width:480px){
+  .score-value{font-size:2rem}
+  .question-text{font-size:1.1rem}
+  .action-btn{padding:0.6rem 1.2rem;font-size:0.9rem}
+  .setup-title{font-size:1.5rem}
+  .neon-title{font-size:2rem}
+}
+
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg-secondary)}
+::-webkit-scrollbar-thumb{background:var(--primary);border-radius:3px}
+
+@keyframes bounceIn {
+  0%{transform:scale(0.3);opacity:0}
+  50%{transform:scale(1.05)}
+  70%{transform:scale(0.9)}
+  100%{transform:scale(1);opacity:1}
+}
+.animate-bounce{animation:bounceIn 0.6s ease}
+.neon-box{box-shadow:0 0 10px rgba(0,212,255,0.2),0 0 20px rgba(0,212,255,0.1)}
+  </style>
+</head>
+<body>
+
+  <div id="splash-screen">
+    <h1 class="neon-title">تطبيق تيمي</h1>
+    <p class="subtitle">رؤية إبداعية للمنافسة الجماعية</p>
+    <p class="designer-credit">المصمم: عمار العبد الله</p>
+    <div class="fluid-loader"><div class="fluid-bar" id="splash-bar"></div></div>
+    <div class="percent-text" id="splash-percent">0%</div>
+    <p class="loading-hint">جاري تحميل تدفق البيانات المبيوي...</p>
+  </div>
+
+  <div id="setup-screen" class="screen">
+    <div class="setup-container">
+      <h2 class="setup-title">⚙️ إعدادات اللعبة والهوية</h2>
+      <div class="teams-row">
+        <div class="team-input-card">
+          <div class="team-icon">🟦</div>
+          <label class="team-label">الفريق الأول (يمين)</label>
+          <input type="text" class="team-input" id="team1-input" placeholder="أدخل اسم الفريق الأول" maxlength="20" autocomplete="off">
+        </div>
+        <div class="team-input-card">
+          <div class="team-icon">🟥</div>
+          <label class="team-label">الفريق الثاني (يسار)</label>
+          <input type="text" class="team-input" id="team2-input" placeholder="أدخل اسم الفريق الثاني" maxlength="20" autocomplete="off">
+        </div>
+      </div>
+      <div class="theme-section">
+        <span class="theme-label">🎨 اختيار المظهر</span>
+        <div class="theme-options">
+          <button class="theme-btn white" data-theme="white"><span class="theme-name">أبيض رخامي</span></button>
+          <button class="theme-btn dark" data-theme="dark"><span class="theme-name">أسود فخم</span></button>
+          <button class="theme-btn green" data-theme="green"><span class="theme-name">أخضر زمردي</span></button>
+        </div>
+      </div>
+      <button class="start-btn" id="start-btn" disabled>🚀 ابدأ اللعبة</button>
+    </div>
+  </div>
+
+  <div id="game-screen" class="screen">
+    <div class="game-header">
+      <button class="help-btn" id="help-btn" title="قواعد اللعبة">⁉️</button>
+      <h2 class="game-title">⚔️ سؤال جواب</h2>
+      <div style="width:45px"></div>
+    </div>
+    <div class="scores-board">
+      <div class="team-score-card" id="team1-score-card">
+        <div class="team-name-display" id="team1-name-display">الفريق الأول</div>
+        <div class="score-value" id="score1">0</div>
+        <div class="score-controls">
+          <button class="score-btn plus" id="s1-plus" title="+50">+</button>
+          <button class="score-btn minus" id="s1-minus" title="-50">−</button>
+        </div>
+      </div>
+      <div class="vs-divider">VS</div>
+      <div class="team-score-card" id="team2-score-card">
+        <div class="team-name-display" id="team2-name-display">الفريق الثاني</div>
+        <div class="score-value" id="score2">0</div>
+        <div class="score-controls">
+          <button class="score-btn plus" id="s2-plus" title="+50">+</button>
+          <button class="score-btn minus" id="s2-minus" title="-50">−</button>
+        </div>
+      </div>
+    </div>
+    <div class="question-area" id="question-area">
+      <div class="question-text">جاري تحميل السؤال...</div>
+    </div>
+    <div class="cards-section">
+      <div class="cards-title">🃏 كروت الدعم العشوائية</div>
+      <div class="cards-row">
+        <div class="team-cards" id="team1-cards"></div>
+        <div class="team-cards" id="team2-cards"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="rules-modal">
+    <div class="modal-content">
+      <button class="modal-close" id="close-rules">✕</button>
+      <h3 class="modal-title">📜 قواعد اللعبة الشاملة</h3>
+      <ul class="rules-list">
+        <li><strong>المنافسة:</strong> اللعبة تعتمد على المنافسة الشريفة بين فريقين (يمين ويسار).</li>
+        <li><strong>الأسئلة:</strong> يتم اختيار الأسئلة عشوائياً وتتنوع قيمتها حسب لونها:<br>🟢 أخضر: 50 نقطة | 🟡 أصفر: 100 نقطة | 🟠 برتقالي: 150 نقطة | 🔴 أحمر: 200 نقطة</li>
+        <li><strong>الكروت:</strong> لكل فريق بطاقتان عشوائيتان في بداية اللعبة يمكن استخدامهما لمرة واحدة فقط.</li>
+        <li><strong>التحكم:</strong> يتم التحكم بالنقاط يدوياً وتلقائياً عبر أزرار الحكم (+50 / -50).</li>
+        <li><strong>كرت التجميل:</strong> يضاعف نقاط السؤال الحالي للفريق في حال الإجابة الصحيحة.</li>
+        <li><strong>كرت التخطي:</strong> يسمح بتجاوز السؤال الحالي واستبداله بسؤال آخر.</li>
+        <li><strong>كرت الاستعانة:</strong> يمنح الفريق دقيقة كاملة إضافية للتشاور.</li>
+        <li><strong>كرت الإسكات:</strong> يمنع الفريق الخصم من التحدث لمدة سؤال واحد.</li>
+        <li><strong>اختصارات لوحة المفاتيح:</strong><br>⌨️ مفتاح <strong>1</strong> = إجابة صحيحة<br>⌨️ مفتاح <strong>2</strong> = إجابة خاطئة<br>⌨️ مفتاح <strong>N</strong> = سؤال آخر<br>⌨️ مفتاح <strong>H</strong> = قواعد اللعبة</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+ // ====== تطبيق سؤال جواب ======
+// برمجة: عمار العبد الله
+
+// ====== المتغيرات العامة ======
+let gameState = {
+  team1Name: '', team2Name: '',
+  team1Score: 0, team2Score: 0,
+  currentTurn: 1,
+  currentQuestion: null,
+  usedQuestions: [],
+  team1Cards: [], team2Cards: [],
+  team1UsedCards: [], team2UsedCards: [],
+  activeMultiplier: 1,
+  currentTheme: 'dark',
+  isMuted: false,
+  gameStarted: false
+};
+
+const POWER_UPS = [
+  { id: 'double', name: 'كرت التجميل', emoji: '🃏', desc: 'مضاعفة النقاط', effect: 'double' },
+  { id: 'skip', name: 'كرت التخطي', emoji: '🃏', desc: 'تخطي السؤال', effect: 'skip' },
+  { id: 'help', name: 'كرت الاستعانة', emoji: '🃏', desc: 'دقيقة إضافية', effect: 'help' },
+  { id: 'silence', name: 'كرت الإسكات', emoji: '🃏', desc: 'إسكات الخصم', effect: 'silence' }
+];
+
+const DIFFICULTY_COLORS = {
+  easy: '#10b981', medium: '#f59e0b',
+  hard: '#f97316', veryhard: '#ef4444'
+};
+const DIFFICULTY_LABELS = {
+  easy: 'سهل', medium: 'متوسط',
+  hard: 'صعب', veryhard: 'صعب جداً'
+};
+
+// ====== الأصوات (Web Audio API) ======
+const AudioEngine = {
+  ctx: null,
+  init() {
+    if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+  },
+  play(type) {
+    if (gameState.isMuted) return;
+    this.init();
+    const ctx = this.ctx, now = ctx.currentTime;
+    switch(type) {
+      case 'click': this._click(ctx, now); break;
+      case 'correct': this._correct(ctx, now); break;
+      case 'wrong': this._wrong(ctx, now); break;
+      case 'start': this._start(ctx, now); break;
+      case 'card': this._card(ctx, now); break;
+      case 'win': this._win(ctx, now); break;
+    }
+  },
+  _click(ctx, now) {
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'square'; osc.frequency.setValueAtTime(800, now);
+    osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+    osc.start(now); osc.stop(now + 0.05);
+  },
+  _correct(ctx, now) {
+    [523, 659, 784, 1047].forEach((freq, i) => {
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine'; osc.frequency.setValueAtTime(freq, now + i * 0.1);
+      gain.gain.setValueAtTime(0, now + i * 0.1);
+      gain.gain.linearRampToValueAtTime(0.15, now + i * 0.1 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.3);
+      osc.start(now + i * 0.1); osc.stop(now + i * 0.1 + 0.3);
+    });
+  },
+  _wrong(ctx, now) {
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(300, now);
+    osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+    osc.start(now); osc.stop(now + 0.3);
+  },
+  _start(ctx, now) {
+    [440, 554, 659, 880].forEach((freq, i) => {
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine'; osc.frequency.setValueAtTime(freq, now + i * 0.15);
+      gain.gain.setValueAtTime(0, now + i * 0.15);
+      gain.gain.linearRampToValueAtTime(0.12, now + i * 0.15 + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.5);
+      osc.start(now + i * 0.15); osc.stop(now + i * 0.15 + 0.5);
+    });
+  },
+  _card(ctx, now) {
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'triangle'; osc.frequency.setValueAtTime(600, now);
+    osc.frequency.exponentialRampToValueAtTime(900, now + 0.1);
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc.start(now); osc.stop(now + 0.2);
+  },
+  _win(ctx, now) {
+    const notes = [523, 659, 784, 1047, 1319];
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine'; osc.frequency.setValueAtTime(freq, now + i * 0.12);
+      gain.gain.setValueAtTime(0, now + i * 0.12);
+      gain.gain.linearRampToValueAtTime(0.15, now + i * 0.12 + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.4);
+      osc.start(now + i * 0.12); osc.stop(now + i * 0.12 + 0.4);
+    });
+  }
+};
+
+// ====== دوال المساعدة ======
+function $(id) { return document.getElementById(id); }
+function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function showToast(message, type = 'info', duration = 2500) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`; toast.textContent = message;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add('show'));
+  setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, duration);
+}
+
+// ====== شاشة البدء ======
+function initSplash() {
+  const bar = $('splash-bar'), percent = $('splash-percent');
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += randomInt(2, 8);
+    if (progress >= 100) {
+      progress = 100; clearInterval(interval);
+      setTimeout(() => {
+        AudioEngine.play('start');
+        $('splash-screen').classList.add('hidden');
+        showScreen('setup-screen');
+      }, 500);
+    }
+    bar.style.width = progress + '%'; percent.textContent = progress + '%';
+    if (progress === 50) percent.style.color = '#7b2ff7';
+    if (progress === 100) percent.style.color = '#00e676';
+  }, 80);
+}
+
+// ====== التنقل ======
+function showScreen(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(screenId).classList.add('active');
+}
+
+// ====== الإعدادات ======
+function initSetup() {
+  const t1 = $('team1-input'), t2 = $('team2-input'), startBtn = $('start-btn');
+  function checkInputs() {
+    startBtn.disabled = !(t1.value.trim().length > 0 && t2.value.trim().length > 0);
+  }
+  t1.addEventListener('input', checkInputs);
+  t2.addEventListener('input', checkInputs);
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      AudioEngine.play('click');
+      document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      gameState.currentTheme = btn.dataset.theme;
+      document.body.className = `theme-${btn.dataset.theme}`;
+    });
+  });
+  document.querySelector('.theme-btn.dark').classList.add('active');
+  document.body.className = 'theme-dark';
+  startBtn.addEventListener('click', () => {
+    AudioEngine.play('start');
+    gameState.team1Name = t1.value.trim();
+    gameState.team2Name = t2.value.trim();
+    startGame();
+  });
+}
+
+// ====== توزيع الكروت ======
+function distributeCards() {
+  const shuffled = shuffleArray(POWER_UPS);
+  gameState.team1Cards = [shuffled[0], shuffled[1]];
+  gameState.team2Cards = [shuffled[2], shuffled[3]];
+  gameState.team1UsedCards = [false, false];
+  gameState.team2UsedCards = [false, false];
+}
+
+// ====== بدء اللعبة ======
+function startGame() {
+  gameState.gameStarted = true;
+  gameState.team1Score = 0; gameState.team2Score = 0;
+  gameState.currentTurn = 1; gameState.usedQuestions = [];
+  gameState.activeMultiplier = 1;
+  distributeCards();
+  $('team1-name-display').textContent = gameState.team1Name;
+  $('team2-name-display').textContent = gameState.team2Name;
+  $('score1').textContent = '0'; $('score2').textContent = '0';
+  updateCardsDisplay(); updateTurnIndicator();
+  showScreen('game-screen'); loadNextQuestion();
+  showToast(`🎮 اللعبة بدأت! دور ${gameState.team1Name}`, 'info', 3000);
+}
+
+// ====== عرض الكروت ======
+function updateCardsDisplay() {
+  const c1 = $('team1-cards'), c2 = $('team2-cards');
+  c1.innerHTML = `<div class="team-cards-label">${gameState.team1Name}</div>`;
+  c2.innerHTML = `<div class="team-cards-label">${gameState.team2Name}</div>`;
+  gameState.team1Cards.forEach((card, i) => {
+    const used = gameState.team1UsedCards[i];
+    const div = document.createElement('div');
+    div.className = `card-slot ${used ? 'used' : ''} ${!used ? 'revealed' : ''}`;
+    div.innerHTML = `<div class="card-back">${used ? '✅' : card.emoji}</div><div class="card-name">${used ? 'مستخدم' : card.name}</div>`;
+    if (!used) div.addEventListener('click', () => useCard(1, i));
+    c1.appendChild(div);
+  });
+  gameState.team2Cards.forEach((card, i) => {
+    const used = gameState.team2UsedCards[i];
+    const div = document.createElement('div');
+    div.className = `card-slot ${used ? 'used' : ''} ${!used ? 'revealed' : ''}`;
+    div.innerHTML = `<div class="card-back">${used ? '✅' : card.emoji}</div><div class="card-name">${used ? 'مستخدم' : card.name}</div>`;
+    if (!used) div.addEventListener('click', () => useCard(2, i));
+    c2.appendChild(div);
+  });
+}
+
+// ====== استخدام كرت ======
+function useCard(team, cardIndex) {
+  AudioEngine.play('card');
+  const cards = team === 1 ? gameState.team1Cards : gameState.team2Cards;
+  const usedArr = team === 1 ? gameState.team1UsedCards : gameState.team2UsedCards;
+  const card = cards[cardIndex];
+  if (usedArr[cardIndex]) return;
+  usedArr[cardIndex] = true;
+  switch(card.effect) {
+    case 'double': gameState.activeMultiplier = 2; showToast(`🃏 ${card.name}: النقاط مضاعفة!`, 'success'); break;
+    case 'skip': showToast(`🃏 ${card.name}: تم تخطي السؤال!`, 'info'); setTimeout(() => loadNextQuestion(), 1000); break;
+    case 'help': showToast(`🃏 ${card.name}: دقيقة إضافية!`, 'info', 5000); break;
+    case 'silence': showToast(`🃏 ${card.name}: ${team === 1 ? gameState.team2Name : gameState.team1Name} مُسكَت!`, 'info'); break;
+  }
+  updateCardsDisplay();
+}
+
+// ====== تحميل سؤال ======
+function loadNextQuestion() {
+  const available = QUESTIONS_BANK.filter(q => !gameState.usedQuestions.includes(q.id));
+  if (available.length === 0) { endGame(); return; }
+  const question = available[randomInt(0, available.length - 1)];
+  gameState.currentQuestion = question;
+  gameState.usedQuestions.push(question.id);
+  gameState.activeMultiplier = 1;
+  renderQuestion(question);
+}
+
+// ====== عرض السؤال ======
+function renderQuestion(q) {
+  const area = $('question-area');
+  const catClass = q.category === 'دينية' ? 'cat-dini' : q.category === 'كروية' ? 'cat-crowi' : q.category === 'ثقافية' ? 'cat-thaqafi' : 'cat-hayati';
+  area.innerHTML = `
+    <div class="question-category-badge ${catClass}">${q.category}</div>
+    <div class="question-points-badge" style="background:${DIFFICULTY_COLORS[q.difficulty]};color:white">${q.points} نقطة</div>
+    <div class="question-text">
+      <span class="question-type-badge">${q.type === 'boolean' ? 'صح / خطأ' : 'إجابة قصيرة'}</span><br><br>
+      ${q.question}
+    </div>
+    <div class="answer-actions">
+      <button class="action-btn correct" onclick="handleAnswer(true)">✅ إجابة صحيحة</button>
+      <button class="action-btn wrong" onclick="handleAnswer(false)">❌ إجابة خاطئة</button>
+      <button class="action-btn next" onclick="loadNextQuestion()">⏭️ سؤال آخر</button>
+    </div>`;
+  area.classList.remove('animate-bounce');
+  void area.offsetWidth; area.classList.add('animate-bounce');
+}
+
+// ====== معالجة الإجابة ======
+function handleAnswer(isCorrect) {
+  const q = gameState.currentQuestion, points = q.points * gameState.activeMultiplier;
+  const currentTeam = gameState.currentTurn;
+  if (isCorrect) {
+    AudioEngine.play('correct');
+    if (currentTeam === 1) gameState.team1Score += points; else gameState.team2Score += points;
+    const multText = gameState.activeMultiplier > 1 ? ` (×${gameState.activeMultiplier})` : '';
+    showToast(`✅ صحيح! +${points} نقطة${multText}`, 'success');
+    const scoreEl = currentTeam === 1 ? $('score1') : $('score2');
+    scoreEl.classList.add('changed'); setTimeout(() => scoreEl.classList.remove('changed'), 500);
+  } else {
+    AudioEngine.play('wrong'); showToast('❌ إجابة خاطئة!', 'error');
+  }
+  $('score1').textContent = gameState.team1Score;
+  $('score2').textContent = gameState.team2Score;
+  gameState.currentTurn = currentTeam === 1 ? 2 : 1;
+  updateTurnIndicator();
+  setTimeout(() => loadNextQuestion(), 1500);
+}
+
+// ====== تحديث الدور ======
+function updateTurnIndicator() {
+  $('team1-score-card').classList.toggle('active-turn', gameState.currentTurn === 1);
+  $('team2-score-card').classList.toggle('active-turn', gameState.currentTurn === 2);
+  showToast(`🎯 دور ${gameState.currentTurn === 1 ? gameState.team1Name : gameState.team2Name}`, 'info', 1500);
+}
+
+// ====== تعديل النقاط ======
+function adjustScore(team, delta) {
+  AudioEngine.play('click');
+  if (team === 1) { gameState.team1Score = Math.max(0, gameState.team1Score + delta); $('score1').textContent = gameState.team1Score; }
+  else { gameState.team2Score = Math.max(0, gameState.team2Score + delta); $('score2').textContent = gameState.team2Score; }
+  const scoreEl = team === 1 ? $('score1') : $('score2');
+  scoreEl.classList.add('changed'); setTimeout(() => scoreEl.classList.remove('changed'), 500);
+}
+
+// ====== نهاية اللعبة ======
+function endGame() {
+  AudioEngine.play('win');
+  let winner, winnerScore, loserScore;
+  if (gameState.team1Score > gameState.team2Score) { winner = gameState.team1Name; winnerScore = gameState.team1Score; loserScore = gameState.team2Score; }
+  else if (gameState.team2Score > gameState.team1Score) { winner = gameState.team2Name; winnerScore = gameState.team2Score; loserScore = gameState.team1Score; }
+  else { winner = 'تعادل!'; winnerScore = gameState.team1Score; loserScore = gameState.team2Score; }
+  showToast(`🏆 انتهت اللعبة! الفائز: ${winner} (${winnerScore} - ${loserScore})`, 'success', 5000);
+  setTimeout(() => { if (confirm('هل تريد لعبة جديدة؟')) showScreen('setup-screen'); }, 3000);
+}
+
+// ====== القواعد ======
+function toggleRules() { AudioEngine.play('click'); $('rules-modal').classList.toggle('active'); }
+
+// ====== تهيئة ======
+document.addEventListener('DOMContentLoaded', () => {
+  initSplash(); initSetup();
+  $('help-btn').addEventListener('click', toggleRules);
+  $('close-rules').addEventListener('click', toggleRules);
+  $('rules-modal').addEventListener('click', (e) => { if (e.target === $('rules-modal')) toggleRules(); });
+  $('s1-plus').addEventListener('click', () => adjustScore(1, 50));
+  $('s1-minus').addEventListener('click', () => adjustScore(1, -50));
+  $('s2-plus').addEventListener('click', () => adjustScore(2, 50));
+  $('s2-minus').addEventListener('click', () => adjustScore(2, -50));
+  document.addEventListener('keydown', (e) => {
+    if (!$('game-screen').classList.contains('active')) return;
+    if (e.key === '1') handleAnswer(true);
+    if (e.key === '2') handleAnswer(false);
+    if (e.key === 'n' || e.key === 'N') loadNextQuestion();
+    if (e.key === 'h' || e.key === 'H') toggleRules();
+  });
+  createParticles();
+});
+
+// ====== جسيمات ======
+function createParticles() {
+  const container = document.createElement('div'); container.className = 'particles';
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div'); p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDelay = Math.random() * 3 + 's';
+    p.style.animationDuration = (3 + Math.random() * 4) + 's';
+    container.appendChild(p);
+  }
+  document.body.appendChild(container);
+}  
+    // بنك الأسئلة - 200 سؤال
+const QUESTIONS_BANK = [
+  // 🟢 الفئة الأولى: السهل (50 نقطة) - 35 سؤال + 15 صح/خطأ
+  {id:1,category:"دينية",difficulty:"easy",points:50,type:"short",question:"ما هو حكم النية في الصلاة عند السيد السيستاني؟",answer:"واجبة ركنية (محلها القلب ولا يجب التلفظ بها)"},
+  {id:2,category:"دينية",difficulty:"easy",points:50,type:"short",question:"كم عدد الركعات الواجبة في اليوم والليلة في الحضر؟",answer:"17 ركعة"},
+  {id:3,category:"دينية",difficulty:"easy",points:50,type:"short",question:"ما حكم قراءة السورة الثانية بعد الفاتحة في الركعتين الأولى والثانية؟",answer:"واجبة على الأحوط وجوباً"},
+  {id:4,category:"دينية",difficulty:"easy",points:50,type:"short",question:"من هو الإمام الأول من أئمة أهل البيت عليهم السلام؟",answer:"الإمام علي بن أبي طالب عليه السلام"},
+  {id:5,category:"دينية",difficulty:"easy",points:50,type:"short",question:"أين يقع مرقد الإمام الحسين عليه السلام؟",answer:"في كربلاء المقدسة"},
+  {id:6,category:"دينية",difficulty:"easy",points:50,type:"short",question:"ما هو ضابط ماء الكر في التطهير عند السيد السيستاني؟",answer:"ما يملأ حيزاً مقداره 36 شبراً تقريباً (أو ما يعادل 384 لتراً تقريباً)"},
+  {id:7,category:"دينية",difficulty:"easy",points:50,type:"short",question:"ما حكم السجود على السجاد المصنوع من الصوف؟",answer:"لا يصح (يجب السجود على الأرض أو ما أنبتته مما لا يؤكل ولا يلبس)"},
+  {id:8,category:"دينية",difficulty:"easy",points:50,type:"short",question:"ما هو اللباس المقدر للميت المسلم في الكفن؟",answer:"المئزر، القميص، والإزار"},
+  {id:9,category:"دينية",difficulty:"easy",points:50,type:"short",question:"متى يُصلى صلاة الآيات؟",answer:"عند كسوف الشمس أو خسوف القمر أو الزلازل المخيفة"},
+  {id:10,category:"كروية",difficulty:"easy",points:50,type:"short",question:"ما هو اللقب الشهير لنادي ريال مدريد الإسباني؟",answer:"الميرينغي (أو الملكي)"},
+  {id:11,category:"كروية",difficulty:"easy",points:50,type:"short",question:"في أي دوري يلعب نادي مانشستر سيتي؟",answer:"الدوري الإنجليزي الممتاز"},
+  {id:12,category:"كروية",difficulty:"easy",points:50,type:"short",question:"ما هو النادي الإيطالي الذي يلقب بـ 'السيدة العجوز'؟",answer:"يوفنتوس"},
+  {id:13,category:"كروية",difficulty:"easy",points:50,type:"short",question:"ما هو النادي الألماني الأكثر تتويجاً بلقب البوندسليغا؟",answer:"بايرن ميونخ"},
+  {id:14,category:"كروية",difficulty:"easy",points:50,type:"short",question:"من هو الهداف التاريخي للدوري الإسباني (لا ليغا)؟",answer:"ليونيل ميسي"},
+  {id:15,category:"كروية",difficulty:"easy",points:50,type:"short",question:"ما هو الملعب الشهير لنادي برشلونة الإسباني؟",answer:"سبوتيفاي كامب نو"},
+  {id:16,category:"كروية",difficulty:"easy",points:50,type:"short",question:"ما هو النادي الإنجليزي الذي يلقب بـ 'الشياطين الحمر'؟",answer:"مانشستر يونايتد"},
+  {id:17,category:"كروية",difficulty:"easy",points:50,type:"short",question:"كم عدد الفرق التي تهبط سنوياً من الدوري الإنجليزي الممتاز؟",answer:"3 فرق"},
+  {id:18,category:"كروية",difficulty:"easy",points:50,type:"short",question:"ما هو اللون الأساسي لقميص نادي ليفربول على أرضه؟",answer:"الأحمر"},
+  {id:19,category:"ثقافية",difficulty:"easy",points:50,type:"short",question:"ما هي عاصمة المملكة العربية السعودية؟",answer:"الرياض"},
+  {id:20,category:"ثقافية",difficulty:"easy",points:50,type:"short",question:"ما هو أكبر المحيطات في العالم مساحة؟",answer:"المحيط الهادئ"},
+  {id:21,category:"ثقافية",difficulty:"easy",points:50,type:"short",question:"ما هو الكوكب الذي يسمى بالكوكب الأحمر؟",answer:"المريخ"},
+  {id:22,category:"ثقافية",difficulty:"easy",points:50,type:"short",question:"ما هو الغاز الأساسي الذي يتنفسه الإنسان ليعيش؟",answer:"الأكسجين"},
+  {id:23,category:"ثقافية",difficulty:"easy",points:50,type:"short",question:"كم عدد قارات العالم؟",answer:"7 قارات"},
+  {id:24,category:"ثقافية",difficulty:"easy",points:50,type:"short",question:"ما هي العملة الرسمية في اليابان؟",answer:"الين"},
+  {id:25,category:"ثقافية",difficulty:"easy",points:50,type:"short",question:"ما هو الطائر الذي يعتبر شعاراً للولايات المتحدة الأمريكية؟",answer:"النسر الأصلع"},
+  {id:26,category:"ثقافية",difficulty:"easy",points:50,type:"short",question:"ما هي عاصمة فرنسا؟",answer:"باريس"},
+  {id:27,category:"حياتية",difficulty:"easy",points:50,type:"short",question:"ما هي الخطوة الأولى والصحيحة لحل أي مشكلة تواجهها في العمل أو الدراسة؟",answer:"تحديد المشكلة وفهم أسبابها أولاً"},
+  {id:28,category:"حياتية",difficulty:"easy",points:50,type:"short",question:"ما الفائدة الأساسية من ترتيب السرير فور الاستيقاظ صباحاً؟",answer:"إعطاء العقل شعوراً بالإنجاز الباكر وتنظيم الوقت"},
+  {id:29,category:"حياتية",difficulty:"easy",points:50,type:"short",question:"كيف تتصرف إذا تحدث معك شخص بغضب شديد دون سبب واضح؟",answer:"الاستماع بهدوء وعدم الرد بنفس النبرة الغاضبة حتى يهدأ"},
+  {id:30,category:"حياتية",difficulty:"easy",points:50,type:"short",question:"ما هو أفضل أسلوب لتجنب النسيان عند التخطيط للمهام اليومية؟",answer:"تدوينها وكتابتها في قائمة مهام (To-Do List)"},
+  {id:31,category:"حياتية",difficulty:"easy",points:50,type:"short",question:"إذا واجهت زميلاً في فريقك يبدو محبطاً، ما هو الأسلوب الحياتي الأمثل لدعمه؟",answer:"الاستماع إليه وتشجيعه والتركيز على نقاط قوته ونقاط نجاحه السابقة"},
+  {id:32,category:"حياتية",difficulty:"easy",points:50,type:"short",question:"ما هو المعدل الطبيعي والصحي لشرب الماء للشخص البالغ يومياً؟",answer:"من 2 إلى 3 لترات (حوالي 8 أكواب)"},
+  {id:33,category:"حياتية",difficulty:"easy",points:50,type:"short",question:"ما هو التصرف اللائق عندما تتأخر عن موعد محدد مسبقاً؟",answer:"إبلاغ الطرف الآخر بالاعتذار وتحديد موعد الوصول المتوقع قبل فوات الوقت"},
+  {id:34,category:"حياتية",difficulty:"easy",points:50,type:"short",question:"ما فائدة ممارسة تمرين التنفس العميق عند الشعور بالتوتر المفاجئ؟",answer:"تهدئة الجهاز العصبي وضخ الأكسجين للدماغ لزيادة التركيز"},
+  {id:35,category:"حياتية",difficulty:"easy",points:50,type:"short",question:"ما هي القاعدة الذهبية في لغة الجسد لإظهار الثقة بالنفس أثناء التحدث مع الآخرين؟",answer:"المحافظة على التواصل البصري المعتدل (Eye Contact) واستقامة الظهر"},
+  {id:36,category:"دينية",difficulty:"easy",points:50,type:"boolean",question:"يجوز عند السيد السيستاني السجود على ورق الشجر غير المأكول.",answer:true},
+  {id:37,category:"دينية",difficulty:"easy",points:50,type:"boolean",question:"يعتبر غسل الجنابة مغنياً عن الوضوء للصلاة عند السيد السيستاني.",answer:true},
+  {id:38,category:"دينية",difficulty:"easy",points:50,type:"boolean",question:"صلاة الظهر تتكون من خمس ركعات في السفر.",answer:false,explanation:"تُقصر إلى ركعتين"},
+  {id:39,category:"كروية",difficulty:"easy",points:50,type:"boolean",question:"فاز نادي أرسنال بلقب الدوري الإنجليزي الممتاز الذهبي دون أي خسارة.",answer:true},
+  {id:40,category:"كروية",difficulty:"easy",points:50,type:"boolean",question:"يقع ملعب السانتياغو برنابيو في مدينة برشلونة.",answer:false,explanation:"في مدريد"},
+  {id:41,category:"كروية",difficulty:"easy",points:50,type:"boolean",question:"نادي بايرن ميونخ ينتمي للدوري الإيطالي.",answer:false,explanation:"الدوري الألماني"},
+  {id:42,category:"ثقافية",difficulty:"easy",points:50,type:"boolean",question:"الشمس هي نجم وليست كوكباً.",answer:true},
+  {id:43,category:"ثقافية",difficulty:"easy",points:50,type:"boolean",question:"الماء يتكون من عنصرين هما الأكسجين والنيتروجين.",answer:false,explanation:"أكسجين وهيدروجين"},
+  {id:44,category:"ثقافية",difficulty:"easy",points:50,type:"boolean",question:"قارة آسيا هي أصغر قارات العالم من حيث المساحة.",answer:false,explanation:"أستراليا هي الأصغر"},
+  {id:45,category:"حياتية",difficulty:"easy",points:50,type:"boolean",question:"النوم لأقل من 4 ساعات يومياً يعتبر كافياً ومثالياً للشباب لزيادة الإنتاجية.",answer:false},
+  {id:46,category:"حياتية",difficulty:"easy",points:50,type:"boolean",question:"مقاطعة المتحدث أثناء شرح فكرته تعتبر من أساليب الحوار الفعّال والذكاء الاجتماعي.",answer:false},
+  {id:47,category:"حياتية",difficulty:"easy",points:50,type:"boolean",question:"تناول وجبة الإفطار يساهم في تنشيط عمليات الأيض والتركيز الذهني طوال اليوم.",answer:true},
+  {id:48,category:"دينية",difficulty:"easy",points:50,type:"boolean",question:"الصوم واجب على المريض الذي يضره الصوم عند السيد السيستاني.",answer:false,explanation:"يحرم عليه الصوم إذا كان يضر به ضرراً معتداً به"},
+  {id:49,category:"كروية",difficulty:"easy",points:50,type:"boolean",question:"نادي ميلان ونادي إنتر ميلان يتشاركان نفس الملعب في إيطاليا.",answer:true,explanation:"سان سيرو / جوزيبي مياتزا"},
+  {id:50,category:"ثقافية",difficulty:"easy",points:50,type:"boolean",question:"الألوان الأساسية في الرسم هي الأحمر والأزرق والأصفر.",answer:true},
+
+  // 🟡 الفئة الثانية: متوسط (100 نقطة)
+  {id:51,category:"دينية",difficulty:"medium",points:100,type:"short",question:"ما هو حكم التدخين في شهر رمضان للمصلي الصائم عند السيد السيستاني؟",answer:"الأحوط وجوباً تجنب إدخال الغبار والدخان الغليظين في الحلق، والسيجار يلحق به على الأحوط"},
+  {id:52,category:"دينية",difficulty:"medium",points:100,type:"short",question:"ما هو حد الترخص المسقط للصيام والصلاة في السفر؟",answer:"هو المكان الذي يتوارى فيه جدران البيوت عن المسافر وخفاء الأذان (بحدود 1350 متراً تقريباً من نهاية المدينة)"},
+  {id:53,category:"دينية",difficulty:"medium",points:100,type:"short",question:"من هو الإمام الذي استشهد مسموماً في طوس بمدينة مشهد؟",answer:"الإمام علي بن موسى الرضا عليه السلام"},
+  {id:54,category:"دينية",difficulty:"medium",points:100,type:"short",question:"كم عدد سنوات إمامة الإمام الصادق عليه السلام تقريباً؟",answer:"34 سنة"},
+  {id:55,category:"دينية",difficulty:"medium",points:100,type:"short",question:"ما حكم التظليل للرجل المحرم في الحج ليلاً عند السيد السيستاني؟",answer:"يجوز التظليل في الليل تحت السقف المتحرك على الأظهر (بخلاف النهار)"},
+  {id:56,category:"دينية",difficulty:"medium",points:100,type:"short",question:"ما هي الأواني التي يحرم الأكل والشرب فيها فقهياً؟",answer:"أواني الذهب والفضة"},
+  {id:57,category:"دينية",difficulty:"medium",points:100,type:"short",question:"ما حكم غسل الجمعة من حيث الوجوب والاستحباب؟",answer:"مستحب استحباباً مؤكداً"},
+  {id:58,category:"دينية",difficulty:"medium",points:100,type:"short",question:"من هي الملقبة بأم البنين وعقيلة بني هاشم؟",answer:"أم البنين هي فاطمة بنت حزام، وعقيلة بني هاشم هي السيدة زينب بنت علي"},
+  {id:59,category:"دينية",difficulty:"medium",points:100,type:"short",question:"ما حكم مس كتابة القرآن الكريم بغير وضوء؟",answer:"يحرم مس خط المصحف لغير المتطهر"},
+  {id:60,category:"كروية",difficulty:"medium",points:100,type:"short",question:"من هو اللاعب الإيطالي الشهير الملقب بـ 'التوتو' أو ملك روما؟",answer:"فرانشيسكو توتي"},
+  {id:61,category:"كروية",difficulty:"medium",points:100,type:"short",question:"أي نادي إنجليزي يسمى بنادي 'السبيرز'؟",answer:"توتنهام هوتسبير"},
+  {id:62,category:"كروية",difficulty:"medium",points:100,type:"short",question:"من هو المدرب الذي حقق السداسية التاريخية مع برشلونة عام 2009؟",answer:"بيب غوارديولا"},
+  {id:63,category:"كروية",difficulty:"medium",points:100,type:"short",question:"ما هو النادي الألماني التقليدي الذي يعتبر الغريم التاريخي لبايرن ميونخ في الكلاسيكير؟",answer:"بوروسيا دورتموند"},
+  {id:64,category:"كروية",difficulty:"medium",points:100,type:"short",question:"من هو اللاعب الذي فاز بجائزة الكرة الذهبية من الدوري الإسباني عام 2022؟",answer:"كريم بنزيما"},
+  {id:65,category:"كروية",difficulty:"medium",points:100,type:"short",question:"ما هو اللقب الشهير لنادي أتلتيكو مدريد الإسباني؟",answer:"الروخي بلانكوس (الأحمر والأبيض) أو الهنود الحمر"},
+  {id:66,category:"كروية",difficulty:"medium",points:100,type:"short",question:"نادي نابولي الإيطالي ارتبط اسمه تاريخياً بأسطورة أرجنتينية، من هو؟",answer:"دييغو أرماندو مارادونا"},
+  {id:67,category:"كروية",difficulty:"medium",points:100,type:"short",question:"في أي ملعب يخوض نادي بروسيا دورتموند مبارياته على أرضه؟",answer:"سيغنال إيدونا بارك (الفيستفالن شتاديون)"},
+  {id:68,category:"كروية",difficulty:"medium",points:100,type:"short",question:"من هو النادي الإنجليزي الوحيد الذي فاز بالدوري الذهبي دون هزيمة عام 2004؟",answer:"أرسنال"},
+  {id:69,category:"ثقافية",difficulty:"medium",points:100,type:"short",question:"ما هو أسرع كائن حي على وجه الأرض؟",answer:"الفهد الصياد (الشيتا)"},
+  {id:70,category:"ثقافية",difficulty:"medium",points:100,type:"short",question:"ما هي الدولة التي تعتبر الموطن الأصلي للبيتزا؟",answer:"إيطاليا"},
+  {id:71,category:"ثقافية",difficulty:"medium",points:100,type:"short",question:"ما هي المادة الأشد صلابة على وجه الأرض؟",answer:"الألماس"},
+  {id:72,category:"ثقافية",difficulty:"medium",points:100,type:"short",question:"كم عدد صمامات قلب الإنسان البالغ؟",answer:"4 صمامات"},
+  {id:73,category:"ثقافية",difficulty:"medium",points:100,type:"short",question:"من هو العالم الذي اكتشف الجاذبية الأرضية؟",answer:"إسحاق نيوتن"},
+  {id:74,category:"ثقافية",difficulty:"medium",points:100,type:"short",question:"ما هو أكبر بلد في العالم من حيث المساحة؟",answer:"روسيا"},
+  {id:75,category:"ثقافية",difficulty:"medium",points:100,type:"short",question:"ما هو الاسم العلمي للمياه الصالحة للشرب؟",answer:"أكسيد الهيدروجين (H₂O)"},
+  {id:76,category:"ثقافية",difficulty:"medium",points:100,type:"short",question:"ما هو الحيوان الملقب بسفينة الصحراء؟",answer:"الجمل"},
+  {id:77,category:"حياتية",difficulty:"medium",points:100,type:"short",question:"عندما تدير نقاشاً مع مجموعة، كيف تتأكد أن الجميع يشارك ويتفاعل معك؟",answer:"طرح أسئلة مفتوحة وتوزيع النظرات بشكل عادل والطلب المباشر للاستماع لآرائهم"},
+  {id:78,category:"حياتية",difficulty:"medium",points:100,type:"short",question:"ما معنى 'الذكاء العاطفي' باختصار وكيف يطبق في الحياة اليومية؟",answer:"قدرة الشخص على فهم مشاعره والتحكم بها وفهم مشاعر الآخرين للتعامل معهم بذكاء"},
+  {id:79,category:"حياتية",difficulty:"medium",points:100,type:"short",question:"ما هو التصرف الذكي عندما تجد نفسك غارقاً بمهام كثيرة قبل الامتحانات؟",answer:"ترتيب المهام حسب الأولوية باستخدام مصفوفة (هام وعاجل) وتجزئة المواد"},
+  {id:80,category:"حياتية",difficulty:"medium",points:100,type:"short",question:"كيف ترفض طلباً لشخص بأسلوب لبق ودبلوماسي دون أن تجرح مشاعره؟",answer:"شكره على الثقة، ثم شرح الرفض بسبب الانشغال مع تقديم بديل إن أمكن"},
+  {id:81,category:"حياتية",difficulty:"medium",points:100,type:"short",question:"ما الأسلوب الصحي لإنهاء مكالمة هاتفية طويلة بلباقة عندما تكون مشغولاً؟",answer:"الاعتذار بلطف بذكر سبب حقيقي (مثل: لدي موعد الآن) والوعد بمعاودة الاتصال لاحقاً"},
+  {id:82,category:"حياتية",difficulty:"medium",points:100,type:"short",question:"ما فائدة أخذ استراحة لمدة 5 دقائق بعد كل 25 دقيقة من المذاكرة (تقنية البومودورو)؟",answer:"تجديد نشاط الخلايا الدماغية ومنع الإجهاد العقلي وتثبيت المعلومات"},
+  {id:83,category:"حياتية",difficulty:"medium",points:100,type:"short",question:"كيف تبني انطباعاً أولياً ممتازاً عند مقابلة شخص لأول مرة؟",answer:"الابتسامة الصادقة، المصافحة بثبات، والترحيب بنبرة صوت واضحة ونقية"},
+  {id:84,category:"حياتية",difficulty:"medium",points:100,type:"short",question:"إذا انتقدك شخص ما علناً أمام الناس، ما هو الرد الحياتي الأكثر نضجاً؟",answer:"الحفاظ على الهدوء التام، وشكره على الملاحظة، وتأجيل النقاش إلى وقت خاص منفرد"},
+  {id:85,category:"حياتية",difficulty:"medium",points:100,type:"short",question:"ما هو الأسلوب الأمثل للتعامل مع الفشل أو الخسارة في مسابقة ما؟",answer:"تقبل النتيجة، وتحليل الأخطاء للاستفادة منها، واعتبارها خطوة للتعلم والتطوير"},
+  {id:86,category:"دينية",difficulty:"medium",points:100,type:"boolean",question:"يجب الخمس في أموال الأرباح التي تمر عليها سنة كاملة زائدة عن مؤونة السنة عند السيد السيستاني.",answer:true},
+  {id:87,category:"دينية",difficulty:"medium",points:100,type:"boolean",question:"يجوز للمرأة إظهار زينة الخاتم والكحل في الوجه والكفين أمام الأجنبي عند السيد السيستاني بغير قصد إثارة.",answer:true,explanation:"مع الأمن من الوقوع في الحرام وعدم كونه بداعي إثارة الشهوة"},
+  {id:88,category:"دينية",difficulty:"medium",points:100,type:"boolean",question:"تبطل الصلاة بالقهقهة عمداً مع الصوت عند السيد السيستاني.",answer:true},
+  {id:89,category:"كروية",difficulty:"medium",points:100,type:"boolean",question:"هبط نادي يوفنتوس الإيطالي إلى دوري الدرجة الثانية (Serie B) عقاباً على قضية الكالتشيو بولي عام 2006.",answer:true},
+  {id:90,category:"كروية",difficulty:"medium",points:100,type:"boolean",question:"كريستيانو رونالدو هو الهداف التاريخي لنادي برشلونة الإسباني.",answer:false,explanation:"هو الهداف التاريخي لريال مدريد"},
+  {id:91,category:"كروية",difficulty:"medium",points:100,type:"boolean",question:"فاز نادي ليفربول بلقب الدوري الإنجليزي الممتاز (Premier League) لأول مرة في تاريخه بنظامه الجديد عام 2020.",answer:true},
+  {id:92,category:"ثقافية",difficulty:"medium",points:100,type:"boolean",question:"الصوت ينتقل في الفضاء الخارجي أسرع من انتقاله في الهواء.",answer:false,explanation:"لا ينتقل الصوت في الفراغ لعدم وجود وسط مادي"},
+  {id:93,category:"ثقافية",difficulty:"medium",points:100,type:"boolean",question:"الفيتامين الرئيسي الذي نحصل عليه من التعرض لأشعة الشمس هو فيتامين سي (C).",answer:false,explanation:"فيتامين د - D"},
+  {id:94,category:"ثقافية",difficulty:"medium",points:100,type:"boolean",question:"سور الصين العظيم هو الأثر الوحيد الذي يمكن رؤيته من الفضاء الخارجي بالعين المجردة.",answer:false,explanation:"إشاعة علمية غير دقيقة"},
+  {id:95,category:"حياتية",difficulty:"medium",points:100,type:"boolean",question:"لغة الجسد تشكل أكثر من 50% من تأثير الرسالة التواصلية في الحوار المباشر.",answer:true},
+  {id:96,category:"حياتية",difficulty:"medium",points:100,type:"boolean",question:"قراءة الكتب الورقية أو الإلكترونية قبل النوم مباشرة عبر شاشات ساطعة تزيد من جودة النوم العميق.",answer:false},
+  {id:97,category:"حياتية",difficulty:"medium",points:100,type:"boolean",question:"شرب المنبهات كالشاي والقهوة بكثرة يعوض الجسم تماماً عن نقص شرب الماء.",answer:false,explanation:"الكافيين يدر البول وقد يسبب الجفاف"},
+  {id:98,category:"دينية",difficulty:"medium",points:100,type:"boolean",question:"عدد أئمة أهل البيت عليهم السلام هو أحد عشر إماماً.",answer:false,explanation:"اثنا عشر إماماً"},
+  {id:99,category:"كروية",difficulty:"medium",points:100,type:"boolean",question:"فاز بايرن ميونخ بلقب دوري أبطال أوروبا في عام 2020 بعد فوزه على باريس سان جيرمان.",answer:true},
+  {id:100,category:"ثقافية",difficulty:"medium",points:100,type:"boolean",question:"يتكون مجلس النواب أو البرلمان في بريطانيا من مجلس اللوردات ومجلس العموم.",answer:true},
+
+  // 🟠 الفئة الثالثة: صعب قليلاً (150 نقطة)
+  {id:101,category:"دينية",difficulty:"hard",points:150,type:"short",question:"ما هو حكم الشك في عدد ركعات صلاة الصبح أو المغرب عند السيد السيستاني؟",answer:"تبطل الصلاة (الشك في الثنائية والثلاثية وفي الركعتين الأوليين من الرباعية مبطل)"},
+  {id:102,category:"دينية",difficulty:"hard",points:150,type:"short",question:"ما هو مقدار زكاة الفطرة نقداً أو صاعاً وما هو جنسها عند السيد السيستاني؟",answer:"صاع (حوالي 3 كيلوغرامات) من القوت الشائع كالتمر أو الأرز أو الطحين أو قيمتها النقدية"},
+  {id:103,category:"دينية",difficulty:"hard",points:150,type:"short",question:"في أي سنة هجرية وقعت معركة الطف واستشهاد الإمام الحسين عليه السلام؟",answer:"سنة 61 هجرية"},
+  {id:104,category:"دينية",difficulty:"hard",points:150,type:"short",question:"ما حكم التظليل الجانبي للمحرم (كأبواب السيارة والنوافذ) عند السيد السيستاني؟",answer:"يحرم التظليل الجانبي على الأحوط وجوباً إذا كان يحمي من الشمس أو المطر أثناء السير"},
+  {id:105,category:"دينية",difficulty:"hard",points:150,type:"short",question:"ما هو الضابط الفقهي لـ 'الموسيقى المحرمة' عند السيد السيستاني؟",answer:"ما كان منها مناسباً لمجالس اللهو واللعب"},
+  {id:106,category:"دينية",difficulty:"hard",points:150,type:"short",question:"ما حكم من أكل مفطراً في شهر رمضان جاهلاً بكونه مفطراً جهلاً قصورياً؟",answer:"صيامه صحيح ولا قضاء عليه"},
+  {id:107,category:"دينية",difficulty:"hard",points:150,type:"short",question:"ما هو الترتيب الصحيح لأعمال عمرة المفردة؟",answer:"الإحرام، الطواف، صلاة الطواف، السعي، التقصير، طواف النساء، صلاة طواف النساء"},
+  {id:108,category:"دينية",difficulty:"hard",points:150,type:"short",question:"كم دامت الغيبة الصغرى للإمام المهدي عجل الله فرجه الشريف؟",answer:"حوالي 74 عاماً"},
+  {id:109,category:"دينية",difficulty:"hard",points:150,type:"short",question:"ما حكم الصلاة في مكان فيه صور مجسمة (تماثيل) لذوات الأرواح؟",answer:"مكروه على الأظهر، وتزول الكراهة بتغطيتها"},
+  {id:110,category:"كروية",difficulty:"hard",points:150,type:"short",question:"من هو النادي الإيطالي الوحيد الذي حقق الثلاثية التاريخية (الدوري والكأس والأبطال) في عام 2010؟",answer:"إنتر ميلان (تحت قيادة مورينيو)"},
+  {id:111,category:"كروية",difficulty:"hard",points:150,type:"short",question:"أي لاعب يملك الرقم القياسي كأكثر من صنع أهدافاً (Assists) في تاريخ الدوري الإنجليزي الممتاز؟",answer:"رايان غيغز"},
+  {id:112,category:"كروية",difficulty:"hard",points:150,type:"short",question:"ما هو النادي الذي أنهى سلسلة هيمنة يوفنتوس على الدوري الإيطالي وحقق اللقب عام 2021؟",answer:"إنتر ميلان"},
+  {id:113,category:"كروية",difficulty:"hard",points:150,type:"short",question:"من هو اللاعب الإسباني الملقب بـ 'الـ نينيو' والذي لعب لأتلتيكو مدريد وليفربول؟",answer:"فرناندو توريس"},
+  {id:114,category:"كروية",difficulty:"hard",points:150,type:"short",question:"كم عدد الألقاب المتتالية التي حققها يوفنتوس في الدوري الإيطالي قبل خسارته اللقب في 2021؟",answer:"9 ألقاب متتالية"},
+  {id:115,category:"كروية",difficulty:"hard",points:150,type:"short",question:"من هو الهداف التاريخي للدوري الألماني (البوندسليغا)؟",answer:"جيرد مولر"},
+  {id:116,category:"كروية",difficulty:"hard",points:150,type:"short",question:"من هو النادي الإسباني الذي يقع في إقليم الباسك ويلعب فقط بلاعبين من أصول باسيكية؟",answer:"أتلتيك بيلباو"},
+  {id:117,category:"كروية",difficulty:"hard",points:150,type:"short",question:"أي نادي إنجليزي فاز بلقب المعجزة للدوري الإنجليزي الممتاز عام 2016؟",answer:"ليستر سيتي"},
+  {id:118,category:"كروية",difficulty:"hard",points:150,type:"short",question:"من هو المدرب الفرنسي الذي قاد ريال مدريد لثلاثة ألقاب متتالية في دوري أبطال أوروبا؟",answer:"زين الدين زيدان"},
+  {id:119,category:"ثقافية",difficulty:"hard",points:150,type:"short",question:"ما هي الدولة العربية التي يمر بها خط الاستواء؟",answer:"الصومال"},
+  {id:120,category:"ثقافية",difficulty:"hard",points:150,type:"short",question:"ما هي أصغر دولة في العالم من حيث المساحة والسكان؟",answer:"الفاتيكان"},
+  {id:121,category:"ثقافية",difficulty:"hard",points:150,type:"short",question:"من هو مخترع المصباح الكهربائي؟",answer:"توماس إديسون"},
+  {id:122,category:"ثقافية",difficulty:"hard",points:150,type:"short",question:"ما هي الغدة في جسم الإنسان التي تسمى غدة 'النمو' أو الغدة الرئيسية؟",answer:"الغدة النخامية"},
+  {id:123,category:"ثقافية",difficulty:"hard",points:150,type:"short",question:"أي مدينة يطلق عليها مدينة التلال السبعة؟",answer:"روما"},
+  {id:124,category:"ثقافية",difficulty:"hard",points:150,type:"short",question:"ما هو العنصر الكيميائي الذي يرمز له بالرمز Au؟",answer:"الذهب"},
+  {id:125,category:"ثقافية",difficulty:"hard",points:150,type:"short",question:"ما هو أعمق خندق مائي في العالم ويقع في المحيط الهادئ؟",answer:"خندق ماريانا"},
+  {id:126,category:"ثقافية",difficulty:"hard",points:150,type:"short",question:"في أي عام انتهت الحرب العالمية الأولى؟",answer:"عام 1918"},
+  {id:127,category:"حياتية",difficulty:"hard",points:150,type:"short",question:"ما هي استراتيجية 'التفاوض القائم على مبدأ رابح-رابح' (Win-Win) في العلاقات المهنية؟",answer:"البحث عن حلول ترضي وتفيد الطرفين المتنازعين دون إقصاء أو خسارة لأي منهما"},
+  {id:128,category:"حياتية",difficulty:"hard",points:150,type:"short",question:"كيف تتعامل مع شخص 'متنمر' في محيطك الاجتماعي بأسلوب ذكي وقانوني؟",answer:"وضع حدود صارمة وحازمة كلامياً، وعدم إظهار التأثر، وتوثيق الإساءة وإبلاغ الجهات المسؤولة"},
+  {id:129,category:"حياتية",difficulty:"hard",points:150,type:"short",question:"ما هو الأسلوب الأمثل لإدارة الأزمات المالية الشخصية بشكل عاجل؟",answer:"إيقاف المصاريف الكمالية فوراً، رصد الديون، ووضع ميزانية تقشفية صارمة للمستلزمات الأساسية فقط"},
+  {id:130,category:"حياتية",difficulty:"hard",points:150,type:"short",question:"كيف تفرّق في أسلوب حياتك بين 'الهدف' و 'الأمنية'؟",answer:"الهدف له خطة زمنية محددة وخطوات عملية مكتوبة، أما الأمنية فهي رغبة بلا حراك أو جدول زمني"},
+  {id:131,category:"حياتية",difficulty:"hard",points:150,type:"short",question:"ما هو المعيار الذهبي لتحديد متى يجب عليك مغادرة نقاش عقيم؟",answer:"عندما يتحول النقاش من محاولة فهم الحقيقة إلى الرغبة في الانتصار الشخصي وعلو الصوت"},
+  {id:132,category:"حياتية",difficulty:"hard",points:150,type:"short",question:"كيف تتغلب على مشكلة 'التسويف والمماطلة' في المشاريع الطويلة؟",answer:"تقسيم المشروع الضخم إلى مهام صغيرة جداً لا تتجاوز 15 دقيقة لكل مهمة لتقليل مقاومة العقل"},
+  {id:133,category:"حياتية",difficulty:"hard",points:150,type:"short",question:"ما هو الأسلوب الفعال لبناء عادة القراءة اليومية دون الشعور بالملل؟",answer:"البدء بصفحتين فقط يومياً في كتاب تحبه، وتثبيت التوقيت والمكان يومياً"},
+  {id:134,category:"حياتية",difficulty:"hard",points:150,type:"short",question:"كيف تحافظ على تركيزك الذهني الكامل في عصر المشتتات الرقمية والهواتف؟",answer:"تفعيل وضع 'عدم الإزعاج'، وإبعاد الهاتف تماماً عن الغرفة أثناء العمل السطحي أو العميق"},
+  {id:135,category:"حياتية",difficulty:"hard",points:150,type:"short",question:"ما هو التصرف الذكي عندما تجد معلومات متضاربة حول موضوع علمي أو حياتي؟",answer:"الرجوع للمصادر الأولية الموثوقة والخبراء المعتمدين والمقارنة بين الأدلة والبراهين"},
+  {id:136,category:"دينية",difficulty:"hard",points:150,type:"boolean",question:"يجوز للمسافر الصائم الإفطار قبل الوصول إلى حد الترخص عند السيد السيستاني.",answer:false,explanation:"يحرم عليه الإفطار قبل حد الترخص وعلي الكفارة والقضاء إن فعل عامداً"},
+  {id:137,category:"دينية",difficulty:"hard",points:150,type:"boolean",question:"من شك بين الركعة الثالثة والرابعة في الصلاة الرباعية يبني على الرابعة ويأتي بصلاة الاحتياط عند السيد السيستاني.",answer:true},
+  {id:138,category:"دينية",difficulty:"hard",points:150,type:"boolean",question:"غسل مس الميت واجب على من مس ميتاً بشرياً بعد برد جسده وقبل تغسيله عند السيد السيستاني.",answer:true},
+  {id:139,category:"كروية",difficulty:"hard",points:150,type:"boolean",question:"فاز نادي أتلتيكو مدريد بلقب دوري أبطال أوروبا 3 مرات في تاريخه.",answer:false,explanation:"وصل النهائي ولم يفز باللقب مطلقاً"},
+  {id:140,category:"كروية",difficulty:"hard",points:150,type:"boolean",question:"الدوري الإيطالي الممتاز يضم حالياً 18 فريقاً فقط في الدرجة الأولى.",answer:false,explanation:"يضم 20 فريقاً"},
+  {id:141,category:"كروية",difficulty:"hard",points:150,type:"boolean",question:"الهداف التاريخي للدوري الإنجليزي الممتاز هو آلان شيرر برصيد 260 هدفاً.",answer:true},
+  {id:142,category:"ثقافية",difficulty:"hard",points:150,type:"boolean",question:"غاز ثاني أكسيد الكربون هو الغاز الأكثر وفرة في الغلاف الجوي للأرض.",answer:false,explanation:"غاز النيتروجين بنسبة 78%"},
+  {id:143,category:"ثقافية",difficulty:"hard",points:150,type:"boolean",question:"تعتبر الغدة الدرقية أكبر غدة صماء موجودة في جسم الإنسان البالغ.",answer:true},
+  {id:144,category:"حياتية",difficulty:"hard",points:150,type:"boolean",question:"لتجنب 'الاحتراق النفسي المهني' يجب خلط وقت العمل بوقت الراحة بالكامل طوال الأسبوع.",answer:false,explanation:"يجب وضع حدود فاصلة صارمة"},
+  {id:145,category:"دينية",difficulty:"hard",points:150,type:"boolean",question:"معركة خيبر قادها النبي الأكرم وسلّم الراية لعمر بن الخطاب ليفتح الحصن.",answer:false,explanation:"سلم الراية للإمام علي بن أبي طالب عليه السلام وهو من فتح الحصن"},
+
+  // 🔴 الفئة الرابعة: صعب جداً (200 نقطة)
+  {id:146,category:"دينية",difficulty:"veryhard",points:200,type:"short",question:"ما هو حكم الصلاة على السجادة المكتوب عليها صور المساجد أو العتبات المقدسة عند السيد السيستاني؟",answer:"تجوز الصلاة عليها ولكن يكره إذا كانت الصورة تحت موضع السجود أو جبهة المصلي"},
+  {id:147,category:"دينية",difficulty:"veryhard",points:200,type:"short",question:"ما حكم التظليل للمحرم في الحج والعمرة إذا كان راكباً في سيارة مسقوفة نهاراً بسبب الاضطرار (كشدة الحر أو المطر)؟",answer:"يجوز للاضطرار وتجب عليه الكفارة (شاة) على الأحوط وجوباً عن كل إحرام"},
+  {id:148,category:"دينية",difficulty:"veryhard",points:200,type:"short",question:"من هو السفراء الأربعة للإمام المهدي (عج) بالترتيب الصحيح؟",answer:"عثمان بن سعيد، محمد بن عثمان، الحسين بن روح، علي بن محمد السمري"},
+  {id:149,category:"دينية",difficulty:"veryhard",points:200,type:"short",question:"ما حكم طهارة المائعات (كالزيت أو الدبس) إذا وقعت فيها نجاسة في نقطة معينة عند السيد السيستاني؟",answer:"يتنجس المائع كله إذا كان سيالاً، أما إذا كان جامداً فيتنجس موضع ملاقاة النجاسة وما حوله فقط"},
+  {id:150,category:"دينية",difficulty:"veryhard",points:200,type:"short",question:"ما هو الحكم الفقهي لـ 'العمل الصيرفي بالربا القرضي' وشراء الأسهم من بنوك ربوية عند السيد السيستاني؟",answer:"يحرم الربا مطلقاً، وشراء أسهم البنوك الربوية غير جائز إن كان من مساهمة في المعاملات الربوية"},
+  {id:151,category:"دينية",difficulty:"veryhard",points:200,type:"short",question:"من هو الصحابي الجليل الذي دافع عن أمير المؤمنين وتوفي في عهد معاوية وقبره مزار في مرج عذراء بالشام؟",answer:"حجر بن عدي الكندي"},
+  {id:152,category:"دينية",difficulty:"veryhard",points:200,type:"short",question:"ما هو حكم من نسي سجدة واحدة في الصلاة والتفت بعد الركوع في الركعة التالية عند السيد السيستاني؟",answer:"يمضي في صلاته ويقضي السجدة بعد الفراغ من الصلاة مباشرة، ويأتي بسجدتي السهو على الأحوط استحباباً"},
+  {id:153,category:"دينية",difficulty:"veryhard",points:200,type:"short",question:"ما هو المقدار الشرعي الأدنى للمهر في عقد الزواج الإسلامي؟",answer:"ليس له حد مقدر شرعاً، بل هو ما تراضى عليه الزوجان (شرط أن يكون له مالية مملوكة)"},
+  {id:154,category:"دينية",difficulty:"veryhard",points:200,type:"short",question:"ما هو حكم التلقيح الصناعي بماء الزوج لامرأته عند السيد السيستاني؟",answer:"جائز في حد ذاته، ولكن يجب تجنب المقدمات المحرمة كمس أو نظر غير الزوج"},
+  {id:155,category:"دينية",difficulty:"veryhard",points:200,type:"short",question:"كم عدد السجدات الواجبة في القرآن الكريم وما هي سورها؟",answer:"4 سجدات واجبة في سور: السجدة، فصلت، النجم، العلق"},
+  {id:156,category:"كروية",difficulty:"veryhard",points:200,type:"short",question:"من هو اللاعب الإنجليزي الوحيد الذي فاز بجائزة الحذاء الذهبي الأوروبي في القرن الحادي والعشرين؟",answer:"هاري كين (مع بايرن ميونخ 2024)"},
+  {id:157,category:"كروية",difficulty:"veryhard",points:200,type:"short",question:"ما هو النادي الذي يملك الرقم القياسي كأكثر فريق تحقيقاً للمركز الثاني (الوصيف) في تاريخ الدوري الإسباني؟",answer:"برشلونة"},
+  {id:158,category:"كروية",difficulty:"veryhard",points:200,type:"short",question:"من هو المدرب الذي قاد نادي سامبدوريا للفوز بلقبه الوحيد والتاريخي في الدوري الإيطالي عام 1991؟",answer:"فوجادين بوشكوف"},
+  {id:159,category:"كروية",difficulty:"veryhard",points:200,type:"short",question:"من هو اللاعب صاحب أسرع هاتريك في تاريخ الدوري الإنجليزي الممتاز (خلال دقيقتين و56 ثانية)؟",answer:"ساديو ماني (مع ساوثهامبتون ضد أستون فيلا)"},
+  {id:160,category:"كروية",difficulty:"veryhard",points:200,type:"short",question:"في أي عام تأسس نادي بايرن ميونخ الألماني؟",answer:"عام 1900"},
+  {id:161,category:"كروية",difficulty:"veryhard",points:200,type:"short",question:"من هو الهداف التاريخي لنادي أتلتيكو مدريد الإسباني عبر كل العصور؟",answer:"أنطوان غريزمان"},
+  {id:162,category:"كروية",difficulty:"veryhard",points:200,type:"short",question:"نادٍ إيطالي عريق يلقب بـ 'الجراناتا' (القميص العنابي) وتعرض لكارثة جوية شهيرة عام 1949، ما هو؟",answer:"تورينو (كارثة سوبرجا)"},
+  {id:163,category:"كروية",difficulty:"veryhard",points:200,type:"short",question:"من هو اللاعب الذي سجل أكبر عدد من الأهداف في موسم واحد بتاريخ الدوري الإسباني برصيد 50 هدفاً؟",answer:"ليونيل ميسي (موسم 2011-2012)"},
+  {id:164,category:"كروية",difficulty:"veryhard",points:200,type:"short",question:"أي نادي ألماني فاز بلقب البوندسليغا دون أي خسارة في موسم تاريخي ومؤخراً؟",answer:"باير ليفركوزن (تحت قيادة تشابي ألونسو عام 2024)"},
+  {id:165,category:"كروية",difficulty:"veryhard",points:200,type:"short",question:"من هو الحكم الإيطالي الأسطوري الأصلع الذي أدار نهائي كأس العالم 2002 ويعتبر الأفضل تاريخياً؟",answer:"بيرلويجي كولينا"},
+  {id:166,category:"ثقافية",difficulty:"veryhard",points:200,type:"short",question:"ما هي المعركة الشهيرة التي هُزم فيها نابليون بونابرت نهائياً عام 1815؟",answer:"معركة واترلو"},
+  {id:167,category:"ثقافية",difficulty:"veryhard",points:200,type:"short",question:"ما هو العنصر الكيميائي السائل في درجة الحرارة العادية ورمز الكيميائي له Hg؟",answer:"الزئبق"},
+  {id:168,category:"ثقافية",difficulty:"veryhard",points:200,type:"short",question:"كم عدد عظام جسم الإنسان البالغ؟",answer:"206 عظامات"},
+  {id:169,category:"ثقافية",difficulty:"veryhard",points:200,type:"short",question:"ما هو المضيق المائي الذي يفصل بين قارتي آسيا وأمريكا الشمالية؟",answer:"مضيق بيرنغ"},
+  {id:170,category:"ثقافية",difficulty:"veryhard",points:200,type:"short",question:"ما هي المادة الكيميائية المسؤولة عن نقل الإشارات العصبية في الدماغ والمسؤولة عن السعادة والتحفيز؟",answer:"الدوبامين"},
+  {id:171,category:"ثقافية",difficulty:"veryhard",points:200,type:"short",question:"من هو الفيلسوف اليوناني القديم الذي كان معلماً للإسكندر الأكبر؟",answer:"أرسطو"},
+  {id:172,category:"ثقافية",difficulty:"veryhard",points:200,type:"short",question:"ما هي الدولة التي تمتلك أكبر عدد من الجزر في العالم؟",answer:"السويد (أكثر من 221,800 جزيرة)"},
+  {id:173,category:"ثقافية",difficulty:"veryhard",points:200,type:"short",question:"ما هو الاسم القديم لمدينة إسطنبول الحالية؟",answer:"القسطنطينية (وقبلها بيزنطة)"},
+  {id:174,category:"ثقافية",difficulty:"veryhard",points:200,type:"short",question:"ما هي سرعة الضوء في الفراغ بدقة؟",answer:"حوالي 300,000 كيلومتر في الثانية (299,792 كم/ث)"},
+  {id:175,category:"ثقافية",difficulty:"veryhard",points:200,type:"short",question:"ما هو الهيكل المعماري القديم الذي يعد الأعجوبة الوحيدة المتبقية من عجائب الدنيا السبع القديمة؟",answer:"الهرم الأكبر في الجيزة (هرم خوفو)"},
+  {id:176,category:"حياتية",difficulty:"veryhard",points:200,type:"short",question:"ما هو التكتيك النفسي لفك التعلق المرضي بالأشخاص أو الأهداف غير الواقعية؟",answer:"تقبل الواقع، قطع المحفزات المباشرة، وتوجيه الطاقة والتركيز نحو أهداف ذاتية جديدة ونافعة"},
+  {id:177,category:"حياتية",difficulty:"veryhard",points:200,type:"short",question:"كيف تدير نقاشاً مع شخص يتبنى مغالطة 'رجل القش' (تحريف كلامك لمهاجمتك)؟",answer:"إيقافه مباشرة وإعادة صياغة كلامك الأصلي بدقة، وطلب الرد على فكرتك الحقيقية لا المحرفة"},
+  {id:178,category:"حياتية",difficulty:"veryhard",points:200,type:"short",question:"ما هو المفهوم الحياتي لـ 'مبدأ باريتو' (قاعدة 80/20) وكيف يستفاد منه؟",answer:"80% من النتائج تأتي من 20% من الجهود، ويستفاد منه بالتركيز على أهم 20% من المهام المؤثرة"},
+  {id:179,category:"حياتية",difficulty:"veryhard",points:200,type:"short",question:"عندما تتعرض لفقدان وظيفة أو مشروع فجأة، ما هي الخطوات الحياتية الاستراتيجية الثلاث الأولى؟",answer:"التوازن العاطفي، تقييم الأمان المالي الحالي، ثم البدء فوراً في بناء شبكة علاقات وتحديث المهارات"},
+  {id:180,category:"حياتية",difficulty:"veryhard",points:200,type:"short",question:"كيف تطور 'التفكير النقدي' (Critical Thinking) في اتخاذ القرارات المصيرية؟",answer:"التشكيك في الافتراضات المسبقة، فحص الأدلة والبدائل، وفصل المشاعر الشخصية عن الحقائق الموضوعية"},
+  {id:181,category:"حياتية",difficulty:"veryhard",points:200,type:"short",question:"ما هو الأسلوب الاحترافي للتعامل مع 'رئيس في العمل' ينسب مجهوداتك الشخصية لنفسه؟",answer:"توثيق كافة الأعمال والتقارير عبر رسائل البريد الإلكتروني الرسمية وإرسال نسخ للمتابعة بذكاء"},
+  {id:182,category:"حياتية",difficulty:"veryhard",points:200,type:"short",question:"كيف تخرج من حالة 'الانغلاق الذهني' أو القفلة الإبداعية أثناء العمل على مشروع فني؟",answer:"تغيير البيئة بالكامل، ممارسة نشاط بدني، والتعرض لأعمال فنية من مجالات مختلفة كلياً للاستلهام"},
+  {id:183,category:"حياتية",difficulty:"veryhard",points:200,type:"short",question:"ما هو الفرق الجوهري في لغة الجسد بين الشخص 'الواثق' والشخص 'المتعجرف'؟",answer:"الواثق يحافظ على استقامة جسده مع انفتاح وتقبل ونبرة هادئة، والمتعجرف يميل لإمالة الرأس للخلف والنظر للأسفل وازدراء الآخرين"},
+  {id:184,category:"حياتية",difficulty:"veryhard",points:200,type:"short",question:"كيف تؤسس 'علامة تجارية شخصية' (Personal Branding) قوية في مجالك؟",answer:"تقديم قيمة علمية مستمرة، الثبات على المبدأ والهوية البصرية، والصدق والاحترافية في التعامل"},
+  {id:185,category:"حياتية",difficulty:"veryhard",points:200,type:"short",question:"ما هو الأسلوب الحياتي الأمثل للتعامل مع التغييرات الكبرى المفاجئة في الحياة (كالانتقال لبلد آخر)؟",answer:"المرونة النفسية، البحث السريع عن مجتمعات داعمة جديدة، واستكشاف الفرص بدلاً من البكاء على الماضي"},
+  {id:186,category:"دينية",difficulty:"veryhard",points:200,type:"boolean",question:"يشترط السيد السيستاني في ذكاة السمك (حليته) أن يكون له فلس (قشور) وأن يموت داخل الماء في الشباك أو خارجه بعد صيده.",answer:false,explanation:"يشترط أن يكون له فلس، ولكن إذا مات داخل الماء في مصيدة أو شبكة فهو حلال، أما إذا مات في الماء حراً فلا يحل"},
+  {id:187,category:"دينية",difficulty:"veryhard",points:200,type:"boolean",question:"الأحوط وجوباً عند السيد السيستاني عدم السجود على القرطاس (الورق) المكتوب عليه إذا كانت الكتابة تمنع وصول الجبهة للورق نفسه.",answer:true},
+  {id:188,category:"دينية",difficulty:"veryhard",points:200,type:"boolean",question:"يرى السيد السيستاني عدم جواز أكل أموال الفوائد البنكية المأخوذة من البنوك الحكومية في الدول الإسلامية إلا بإذن الحاكم الشرعي ومراجعته.",answer:true,explanation:"تعتبر مجهولة المالك ويتصدق بنصفها على الفقراء المتدينين بإذن الحاكم الشرعي على الأحوط"},
+  {id:189,category:"كروية",difficulty:"veryhard",points:200,type:"boolean",question:"فاز نادي ريال مدريد بلقب الدوري الإسباني 5 مرات متتالية في مناسبتين مختلفتين تاريخياً.",answer:true},
+  {id:190,category:"كروية",difficulty:"veryhard",points:200,type:"boolean",question:"يوفنتوس هو النادي الإيطالي الوحيد الذي لم يهبط أبدًا إلى الدرجة الثانية طوال تاريخه.",answer:false,explanation:"إنتر ميلان هو النادي الوحيد الذي لم يهبط مطلقاً"},
+  {id:191,category:"كروية",difficulty:"veryhard",points:200,type:"boolean",question:"السير أليكس فيرغسون فاز بلقب الدوري الإنجليزي الممتاز مع مانشستر يونايتد 13 مرة.",answer:true},
+  {id:192,category:"ثقافية",difficulty:"veryhard",points:200,type:"boolean",question:"أكبر خلية مفردة في العالم يمكن رؤيتها بالعين المجردة هي بيضة النعامة.",answer:true},
+  {id:193,category:"ثقافية",difficulty:"veryhard",points:200,type:"boolean",question:"يتكون جزيء الأوزون في الغلاف الجوي من أربع ذرات أكسجين (O₄).",answer:false,explanation:"يتكون من ثلاث ذرات أكسجين O₃"},
+  {id:194,category:"ثقافية",difficulty:"veryhard",points:200,type:"boolean",question:"يبلغ الطول الإجمالي للجهاز الهضمي في الإنسان البالغ حوالي 9 أمتار.",answer:true},
+  {id:195,category:"حياتية",difficulty:"veryhard",points:200,type:"boolean",question:"مغالطة 'المصادرة على المطلوب' تعني افتراض صحة النتيجة التي تحاول إثباتها وجعلها جزءاً من الدليل.",answer:true},
+  {id:196,category:"حياتية",difficulty:"veryhard",points:200,type:"boolean",question:"في التخطيط المالي، يعتبر 'صندوق الطوارئ' مثالياً إذا كان يغطي مصاريف شهر واحد فقط من التزاماتك الأساسية.",answer:false,explanation:"المثالي من 3 إلى 6 أشهر"},
+  {id:197,category:"دينية",difficulty:"veryhard",points:200,type:"boolean",question:"كتاب 'الغدير في الكتاب والسنة والأدب' هو موسوعة دينية ضخمة من تأليف الشيخ الأميني.",answer:true},
+  {id:198,category:"كروية",difficulty:"veryhard",points:200,type:"boolean",question:"فاز نادي شالكه بلقب الدوري الألماني (البوندسليغا) بنظامه الجديد أكثر من 5 مرات.",answer:false,explanation:"لم يسبق لشالكه الفوز بالبوندسليغا بنظامها الجديد الحاضر"},
+  {id:199,category:"ثقافية",difficulty:"veryhard",points:200,type:"boolean",question:"العنصر الكيميائي الأكثر تواجداً في الكون بأكمله هو الهيدروجين.",answer:true},
+  {id:200,category:"حياتية",difficulty:"veryhard",points:200,type:"boolean",question:"النوم القهري أو المفاجئ هو اضطراب عصبي مزمن يؤثر على قدرة الدماغ على تنظيم دورات النوم والاستيقاظ.",answer:true}
+];
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = QUESTIONS_BANK;
+}
+  </script>
+</body>
+</html>
